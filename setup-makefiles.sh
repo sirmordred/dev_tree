@@ -18,9 +18,8 @@
 
 set -e
 
-# Required!
-export DEVICE=gemini
-export VENDOR=xiaomi
+DEVICE=gemini
+VENDOR=xiaomi
 
 INITIAL_COPYRIGHT_YEAR=2016
 
@@ -28,25 +27,28 @@ INITIAL_COPYRIGHT_YEAR=2016
 MY_DIR="${BASH_SOURCE%/*}"
 if [[ ! -d "$MY_DIR" ]]; then MY_DIR="$PWD"; fi
 
-LINEAGE_ROOT="$MY_DIR"/../../..
+JDC_ROOT="$MY_DIR"/../../..
 
-HELPER="$LINEAGE_ROOT"/vendor/lineage/build/tools/extract_utils.sh
+HELPER="$JDC_ROOT"/vendor/aosp/build/tools/extract_utils.sh
 if [ ! -f "$HELPER" ]; then
     echo "Unable to find helper script at $HELPER"
     exit 1
 fi
 . "$HELPER"
 
-if [ -s "$MY_DIR"/../$DEVICE/proprietary-files.txt ]; then
-    # Reinitialize the helper for device
-    setup_vendor "$DEVICE" "$VENDOR" "$LINEAGE_ROOT" false
+# Initialize the helper
+setup_vendor "$DEVICE" "$VENDOR" "$JDC_ROOT"
 
-    # Copyright headers and guards
-    write_headers
+# Copyright headers and guards
+write_headers
 
-    # The standard device blobs
-    write_makefiles "$MY_DIR"/../$DEVICE/proprietary-files.txt
+write_makefiles "$MY_DIR"/proprietary-files.txt
 
-    # We are done!
-    write_footers
-fi
+cat << EOF >> "$ANDROIDMK"
+\$(shell mkdir -p \$(PRODUCT_OUT)/system/vendor/lib/egl && pushd \$(PRODUCT_OUT)/system/vendor/lib > /dev/null && ln -s egl/libEGL_adreno.so libEGL_adreno.so && popd > /dev/null)
+\$(shell mkdir -p \$(PRODUCT_OUT)/system/vendor/lib64/egl && pushd \$(PRODUCT_OUT)/system/vendor/lib64 > /dev/null && ln -s egl/libEGL_adreno.so libEGL_adreno.so && popd > /dev/null)
+
+EOF
+
+# Finish
+write_footers

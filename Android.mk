@@ -25,8 +25,7 @@
 
 LOCAL_PATH := $(call my-dir)
 
-ifneq ($(filter gemini,$(TARGET_DEVICE)),)
-
+ifeq ($(TARGET_DEVICE),gemini)
 include $(call all-makefiles-under,$(LOCAL_PATH))
 
 include $(CLEAR_VARS)
